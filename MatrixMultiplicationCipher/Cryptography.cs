@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Security.Principal;
 using System.Text;
@@ -121,6 +122,17 @@ namespace MatrixMultiplicationCipher
             return index;
         }
 
+        private string GetSymbol(int index)
+        {
+            string symbol = "";
+            
+            int row = (index / 10) - 1;
+            int column = (index % 10) - 1;
+
+            symbol += alphabet[row, column];
+            return symbol;
+        }
+
         private int[,] initialKeyMatrix(int n)
         {
             key = new int[n, n];
@@ -188,6 +200,13 @@ namespace MatrixMultiplicationCipher
             printMatrix(lockedMessage);
             return lockedMessage;
             
+        }
+
+        private string Decrypt(int[,] lockedMessage)
+        {
+            string message = "";
+
+            return message;
         }
         
         private int[,] Multiplication(int[,] matrix, int[,] partMessage)
