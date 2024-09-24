@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,11 +29,22 @@ namespace MatrixMultiplicationCipher
             {
                 Console.Write("\nВведите сообщение: ");
                 string message = Console.ReadLine();
+
+                //зашифрованное сообщение
+                int[] encryptMessage = Encrypt(message);
+                printArray(encryptMessage);
+
             }
         }
 
+        public void printArray(int[] array)
+        {
+            int i;
+            for (i = 0; i < array.Length; i++)
+                Console.Write(array[i] + " ");
+        }
 
-        public void printMatrix()
+        private void printMatrix()
         {
             Console.WriteLine("Матрица алфавита:\n");
 
@@ -47,6 +59,50 @@ namespace MatrixMultiplicationCipher
             }
         }
 
+        private int GetIndex(char character)
+        {
+            int index = -1;
+            string indexString = "";
+
+            for (int rows = 0; rows < 8; rows++)
+            {
+                for (int column = 0; column < 9; column++)
+                {
+                    if (alphabet[rows, column] == character)
+                    {
+                        indexString += (rows + 1).ToString() + (column + 1).ToString();
+                        index = int.Parse(indexString);
+                        break;
+                    }
+                }
+
+                if (indexString != "")
+                    break;
+
+            }
+
+            return index;
+        }
+
+        private int[] Encrypt(string message)
+        {
+            char[] characters = message.ToCharArray();
+            int [] lockedMessage = new int [characters.Length];
+
+            int i = 0;
+            foreach (var character in characters)
+            {
+                if (GetIndex(character) == -1)
+                    return null;
+                else
+                {
+                    lockedMessage[i] = GetIndex(character);
+                    i++;
+                }
+            }
+     
+            return lockedMessage;
+        }
 
         static void Main(string[] args)
         {
