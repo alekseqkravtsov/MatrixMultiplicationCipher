@@ -21,6 +21,8 @@ namespace MatrixMultiplicationCipher
                 { 'э', 'ю', 'я', ' ', '.', ':', '!', '?', ','},
         };
 
+        private int[,] key;
+
         public void startProgram()
         {
             printMatrix();
@@ -31,17 +33,34 @@ namespace MatrixMultiplicationCipher
                 string message = Console.ReadLine();
 
                 //зашифрованное сообщение
-                int[] encryptMessage = Encrypt(message);
-                printArray(encryptMessage);
+                int[,] encryptMessage = EncryptPolybius(message);
+                Console.WriteLine("\nШифрование по таблице алфавита:"); printMatrix(encryptMessage);
 
                 //инициализируем матрицу ключа
-                int[,] key = initialKeyMatrix();
-                Console.WriteLine("Матрица ключа:"); printMatrix(key);
+                int[,] key = initialKeyMatrix(3);
+                Console.WriteLine("\nМатрица ключа:"); printMatrix(key);
+
+                //шифрование перемножением матриц
+                int [,] lockedMessage = Encrypt(message);
 
             }
         }
 
-        public void printArray(int[] array)
+        private int getCountSections(int[,] matrix)
+        {
+            int sections = 1;
+            for(int i = 0, j = 0; i < matrix.GetLength(0); i++, j++)
+            {
+                if (j == 3)
+                {
+                    sections++;
+                    j = 0;
+                }
+            }
+            return sections;
+        }
+
+        private void printArray(int[] array)
         {
             int i;
             for (i = 0; i < array.Length; i++)
@@ -102,22 +121,22 @@ namespace MatrixMultiplicationCipher
             return index;
         }
 
-        private int[,] initialKeyMatrix()
+        private int[,] initialKeyMatrix(int n)
         {
-            int[,] KeyMatrix = new int[3, 3];
+            key = new int[n, n];
             Random rnd = new Random();
 
-            for (int i = 0; i < 3; i++)
-                for (int j = 0;j < 3; j++)
-                    KeyMatrix[i, j] = rnd.Next(1,6);
+            for (int i = 0; i < n; i++)
+                for (int j = 0;j < n; j++)
+                    key[i, j] = rnd.Next(1,6);
 
-            return KeyMatrix;
+            return key;
         }
 
-        private int[] Encrypt(string message)
+        private int[,] EncryptPolybius(string message)
         {
             char[] characters = message.ToCharArray();
-            int [] lockedMessage = new int [characters.Length];
+            int [,] lockedMessage = new int [characters.Length, 1];
 
             int i = 0;
             foreach (var character in characters)
@@ -126,12 +145,67 @@ namespace MatrixMultiplicationCipher
                     return null;
                 else
                 {
-                    lockedMessage[i] = GetIndex(character);
+                    lockedMessage[i, 0] = GetIndex(character);
                     i++;
                 }
             }
-     
+
             return lockedMessage;
+        }
+
+        private int[,] Encrypt(string message)
+        {
+            int[,] vectorMessage = EncryptPolybius(message);
+            int sections = getCountSections(vectorMessage);
+            int[,] partOfMessage = new int[key.GetLength(0), 1];
+
+            int[,] lockedMessage = new int[sections * key.GetLength(0), 1];
+
+            int section = 1, start = 0;
+            for (int i = 0; i < sections; i++)
+            {
+                //разбиение сообщения на части
+                for (int j = start, k = 0; j < key.GetLength(0) * section; j++, k++)
+                {
+                    if (j > vectorMessage.GetLength(0) - 1)
+                        partOfMessage[k, 0] = alphabet[7, 3];
+                    else
+                        partOfMessage[k, 0] = vectorMessage[j, 0];
+                }
+                
+                //умножение матриц
+                int[,] result = Multiplication(key, partOfMessage);
+                for (int j = start, k = 0; j < section * key.GetLength(0); j++, k++)
+                    lockedMessage[j, 0] = result[k, 0];
+
+             
+                section++;
+                start += key.GetLength(0);
+            }
+
+            //вывод зашифрованного сообщения
+            Console.WriteLine("\nЗашифрованное сообщение перемножением матриц:");
+            printMatrix(lockedMessage);
+            return lockedMessage;
+            
+        }
+        
+        private int[,] Multiplication(int[,] matrix, int[,] partMessage)
+        {
+            if (matrix.GetLength(1) != partMessage.GetLength(0)) throw new Exception("Матрицы нельзя перемножить");
+            int[,] result = new int[matrix.GetLength(0), partMessage.GetLength(1)];
+
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < partMessage.GetLength(1); j++)
+                {
+                    for (int k = 0; k < partMessage.GetLength(0); k++)
+                    {
+                        result[i, j] += matrix[i, k] * partMessage[k, j];
+                    }
+                }
+            }
+            return result;
         }
 
         static void Main(string[] args)
