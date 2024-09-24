@@ -1,0 +1,7 @@
+C:\Users\Алексей\Documents\GitRepos\MatrixMultiplicationCipher\MatrixMultiplicationCipher\bin\Debug\MatrixMultiplicationCipher.exe.config
+C:\Users\Алексей\Documents\GitRepos\MatrixMultiplicationCipher\MatrixMultiplicationCipher\bin\Debug\MatrixMultiplicationCipher.exe
+C:\Users\Алексей\Documents\GitRepos\MatrixMultiplicationCipher\MatrixMultiplicationCipher\bin\Debug\MatrixMultiplicationCipher.pdb
+C:\Users\Алексей\Documents\GitRepos\MatrixMultiplicationCipher\MatrixMultiplicationCipher\obj\Debug\MatrixMultiplicationCipher.csproj.AssemblyReference.cache
+C:\Users\Алексей\Documents\GitRepos\MatrixMultiplicationCipher\MatrixMultiplicationCipher\obj\Debug\MatrixMultiplicationCipher.csproj.CoreCompileInputs.cache
+C:\Users\Алексей\Documents\GitRepos\MatrixMultiplicationCipher\MatrixMultiplicationCipher\obj\Debug\MatrixMultiplicationCipher.exe
+C:\Users\Алексей\Documents\GitRepos\MatrixMultiplicationCipher\MatrixMultiplicationCipher\obj\Debug\MatrixMultiplicationCipher.pdb
