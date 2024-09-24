@@ -34,6 +34,10 @@ namespace MatrixMultiplicationCipher
                 int[] encryptMessage = Encrypt(message);
                 printArray(encryptMessage);
 
+                //инициализируем матрицу ключа
+                int[,] key = initialKeyMatrix();
+                Console.WriteLine("Матрица ключа:"); printMatrix(key);
+
             }
         }
 
@@ -42,6 +46,7 @@ namespace MatrixMultiplicationCipher
             int i;
             for (i = 0; i < array.Length; i++)
                 Console.Write(array[i] + " ");
+            Console.WriteLine();
         }
 
         private void printMatrix()
@@ -54,6 +59,19 @@ namespace MatrixMultiplicationCipher
                 for (j = 0; j < 9; j++)
                 {
                     Console.Write(alphabet[i, j] + " ");
+                }
+                Console.WriteLine("");
+            }
+        }
+
+        private void printMatrix(int[,] matrix)
+        {
+            int i, j;
+            for (i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (j = 0; j < matrix.GetLength(1); j++)
+                {
+                    Console.Write(matrix[i, j] + " ");
                 }
                 Console.WriteLine("");
             }
@@ -82,6 +100,18 @@ namespace MatrixMultiplicationCipher
             }
 
             return index;
+        }
+
+        private int[,] initialKeyMatrix()
+        {
+            int[,] KeyMatrix = new int[3, 3];
+            Random rnd = new Random();
+
+            for (int i = 0; i < 3; i++)
+                for (int j = 0;j < 3; j++)
+                    KeyMatrix[i, j] = rnd.Next(1,6);
+
+            return KeyMatrix;
         }
 
         private int[] Encrypt(string message)
