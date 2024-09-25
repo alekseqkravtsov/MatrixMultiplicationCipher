@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Linq;
+using System.Reflection;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+
 
 namespace MatrixMultiplicationCipher
 {
@@ -39,13 +41,17 @@ namespace MatrixMultiplicationCipher
 
                 //инициализируем матрицу ключа
                 int[,] key = initialKeyMatrix(3);
-                Console.WriteLine("\nМатрица ключа:"); printMatrix(key);
+                Console.WriteLine("\nМатрица ключа:"); printMatrix(key, false);
 
                 //шифрование перемножением матриц
                 int [,] lockedMessage = Encrypt(message);
+                
+                //дешифрование сообщения
+                string decryptMessage = Decrypt(lockedMessage);
 
             }
         }
+
 
         private int getCountSections(int[,] matrix)
         {
@@ -59,14 +65,6 @@ namespace MatrixMultiplicationCipher
                 }
             }
             return sections;
-        }
-
-        private void printArray(int[] array)
-        {
-            int i;
-            for (i = 0; i < array.Length; i++)
-                Console.Write(array[i] + " ");
-            Console.WriteLine();
         }
 
         private void printMatrix()
@@ -84,7 +82,7 @@ namespace MatrixMultiplicationCipher
             }
         }
 
-        private void printMatrix(int[,] matrix)
+        private void printMatrix(int[,] matrix, bool onStroke = true)
         {
             int i, j;
             for (i = 0; i < matrix.GetLength(0); i++)
@@ -93,8 +91,12 @@ namespace MatrixMultiplicationCipher
                 {
                     Console.Write(matrix[i, j] + " ");
                 }
-                Console.WriteLine("");
+                if(!onStroke)
+                    Console.WriteLine();
             }
+
+            if(onStroke)
+                Console.WriteLine();
         }
 
         private int GetIndex(char character)
@@ -180,13 +182,15 @@ namespace MatrixMultiplicationCipher
                 for (int j = start, k = 0; j < key.GetLength(0) * section; j++, k++)
                 {
                     if (j > vectorMessage.GetLength(0) - 1)
-                        partOfMessage[k, 0] = alphabet[7, 3];
+                        partOfMessage[k, 0] = 84;
                     else
                         partOfMessage[k, 0] = vectorMessage[j, 0];
                 }
                 
                 //умножение матриц
                 int[,] result = Multiplication(key, partOfMessage);
+
+                //сливание result в массив, который будет содержать зашифрованное сообщение
                 for (int j = start, k = 0; j < section * key.GetLength(0); j++, k++)
                     lockedMessage[j, 0] = result[k, 0];
 
@@ -205,7 +209,28 @@ namespace MatrixMultiplicationCipher
         private string Decrypt(int[,] lockedMessage)
         {
             string message = "";
+            int sections = lockedMessage.GetLength(0) / key.GetLength(0);
+            double[,] decryptedParts = new double[key.GetLength(0), 1];
 
+            // Обратное умножение матриц
+            for (int i = 0; i < sections; i++)
+            {
+                int[,] partMessage = new int[key.GetLength(0), 1];
+                for (int j = 0; j < key.GetLength(0); j++)
+                {
+                    partMessage[j, 0] = lockedMessage[i * key.GetLength(0) + j, 0];
+                }
+               
+                //умножение обратной матрицы ключа на зашифрованную часть сообщения
+                int[,] result = Multiplication(Inverse(key), partMessage);
+                for(int j = 0; j < key.GetLength(0); j++)
+                {
+                        message += GetSymbol(result[j, 0]);
+                }
+            }
+
+
+            Console.WriteLine("\nРасшифрованное сообщение: " + message);
             return message;
         }
         
@@ -220,11 +245,94 @@ namespace MatrixMultiplicationCipher
                 {
                     for (int k = 0; k < partMessage.GetLength(0); k++)
                     {
-                        result[i, j] += matrix[i, k] * partMessage[k, j];
+                        
+                        result[i, j] += (matrix[i, k] * partMessage[k, j]);
                     }
                 }
             }
             return result;
+        }
+
+        private int[,] Multiplication(double[,] matrix, int[,] partMessage)
+        {
+            
+            if (matrix.GetLength(1) != partMessage.GetLength(0)) throw new Exception("Матрицы нельзя перемножить");
+
+            double[,] result = new double[matrix.GetLength(0), partMessage.GetLength(1)];
+            int[,] intresult = new int[matrix.GetLength(0), partMessage.GetLength(1)];
+
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < partMessage.GetLength(1); j++)
+                {
+                    for (int k = 0; k < partMessage.GetLength(0); k++)
+                    {
+                        double element = (matrix[i, k] * partMessage[k, j]);
+                        result[i, j] += element;
+                    }
+                    intresult[i, j] = Convert.ToInt32(result[i,j]);
+                }
+            }
+
+            return intresult;
+        }
+
+        private double[,] Inverse(int[,] matrix)
+        {
+            int n = matrix.GetLength(0);
+            double[,] augmentedMatrix = new double[n, 2 * n];
+
+            // Создаем расширенную матрицу [matrix | I]
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    augmentedMatrix[i, j] = matrix[i, j];
+                }
+                augmentedMatrix[i, i + n] = 1; // единичная матрица
+            }
+
+            // Применяем метод Гаусса
+            for (int i = 0; i < n; i++)
+            {
+                // Находим ведущий элемент
+                double pivot = augmentedMatrix[i, i];
+                if (Math.Abs(pivot) < 1e-10) // Проверка на ноль
+                {
+                    throw new InvalidOperationException("Матрица не обратима.");
+                }
+
+                // Нормализуем строку
+                for (int j = 0; j < 2 * n; j++)
+                {
+                    augmentedMatrix[i, j] /= pivot;
+                }
+
+                // Обнуляем остальные элементы в столбце
+                for (int k = 0; k < n; k++)
+                {
+                    if (k != i)
+                    {
+                        double factor = augmentedMatrix[k, i];
+                        for (int j = 0; j < 2 * n; j++)
+                        {
+                            augmentedMatrix[k, j] -= factor * augmentedMatrix[i, j];
+                        }
+                    }
+                }
+            }
+
+            // Извлекаем обратную матрицу
+            double[,] inverseMatrix = new double[n, n];
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    inverseMatrix[i, j] = augmentedMatrix[i, j + n];
+                }
+            }
+
+            return inverseMatrix;
         }
 
         static void Main(string[] args)
