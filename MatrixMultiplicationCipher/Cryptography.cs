@@ -36,19 +36,23 @@ namespace MatrixMultiplicationCipher
                 string message = Console.ReadLine();
 
                 //зашифрованное сообщение
-                int[,] encryptMessage = EncryptPolybius(message);
-                Console.WriteLine("\nШифрование по таблице алфавита:"); printMatrix(encryptMessage);
+                if (EncryptPolybius(message) != null)
+                {
+                    int[,] encryptMessage = EncryptPolybius(message);
+                    Console.WriteLine("\nШифрование по таблице алфавита:"); printMatrix(encryptMessage);
 
-                //инициализируем матрицу ключа
-                int[,] key = initialKeyMatrix(3);
-                Console.WriteLine("\nМатрица ключа:"); printMatrix(key, false);
+                    //инициализируем матрицу ключа
+                    int[,] key = initialKeyMatrix(3);
+                    Console.WriteLine("\nМатрица ключа:"); printMatrix(key, false);
 
-                //шифрование перемножением матриц
-                int [,] lockedMessage = Encrypt(message);
-                
-                //дешифрование сообщения
-                string decryptMessage = Decrypt(lockedMessage);
+                    //шифрование перемножением матриц
+                    int[,] lockedMessage = Encrypt(message);
 
+                    //дешифрование сообщения
+                    string decryptMessage = Decrypt(lockedMessage);
+                }
+                else
+                    Console.WriteLine("Сообщение содержит недопустимые символы для алфавита шифрования.");
             }
         }
 
@@ -142,7 +146,7 @@ namespace MatrixMultiplicationCipher
 
             for (int i = 0; i < n; i++)
                 for (int j = 0;j < n; j++)
-                    key[i, j] = rnd.Next(1,6);
+                    key[i, j] = rnd.Next(2,10);
 
             return key;
         }
